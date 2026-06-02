@@ -1,0 +1,10 @@
+=========================================
+AWS RESOURCE: aws_s3_bucket.demo
+=========================================
+AMI ID Allocated: ami-nucxdlm81tnqt9c8d
+Instance Type:    t2.micro
+Region:           us-west-2
+Tags:
+  Name      = "learn-terraform"
+  Project   = "aws-accelerator-phase-2"
+  ManagedBy = "Terraform"

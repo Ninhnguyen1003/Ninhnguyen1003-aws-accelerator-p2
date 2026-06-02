@@ -1,0 +1,1 @@
+S3 Bucket Backup location: ./ninhnguyen1003-demo-bucket.txt. Authorized with secret token.
