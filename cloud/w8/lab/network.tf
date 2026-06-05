@@ -58,6 +58,27 @@ resource "aws_route_table_association" "private_assoc" {
   route_table_id = aws_route_table.private_rt.id
 }
 
+resource "aws_route_table" "public_rt" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+
+  tags = { Name = "${var.project_name}-public-rt" }
+}
+
+resource "aws_route_table_association" "public_1_assoc" {
+  subnet_id      = aws_subnet.public_1.id
+  route_table_id = aws_route_table.public_rt.id
+}
+
+resource "aws_route_table_association" "public_2_assoc" {
+  subnet_id      = aws_subnet.public_2.id
+  route_table_id = aws_route_table.public_rt.id
+}
+
 # ==========================================================
 # 3. TẦNG BẢO MẬT (SECURITY GROUPS)
 # ==========================================================
@@ -66,9 +87,18 @@ resource "aws_security_group" "alb_sg" {
   name   = "${var.project_name}-alb-sg"
   vpc_id = aws_vpc.main.id
 
+  # Cho phép vào bằng cổng 80 chuẩn
   ingress {
     from_port   = 80
     to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # 🌟 ĐÃ THÊM: Mở cổng 30080 trực tiếp trên vỏ ngoài của Load Balancer
+  ingress {
+    from_port   = 30080
+    to_port     = 30080
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -113,11 +143,10 @@ resource "aws_security_group" "ec2_sg" {
 # ==========================================================
 
 resource "aws_instance" "k8s_host" {
-  ami                    = "ami-01811d4912b4ccb26" # 🌟 Đã điền thẳng mã AMI Singapore chuẩn
+  ami                    = "ami-01811d4912b4ccb26" # Mã AMI Singapore chuẩn
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.private.id
   
-  # 🌟 CHỖ CHỐT HẠ: Ăn thẳng theo tên cái Key Pair "ninh_dev" bạn vừa tạo trên Web Console
   key_name               = "ninh_dev" 
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
 
