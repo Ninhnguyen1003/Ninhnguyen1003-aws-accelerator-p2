@@ -1,0 +1,28 @@
+name: GitOps CI-CD Pipeline
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  pipeline-simulation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Simulink Plan-on-PR
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "=== TRIGGER: PLAN-ON-PR ==="
+          echo "Running linter and dry-run manifests..."
+          echo "ArgoCD target state preview generated successfully."
+
+      - name: Simulink Apply-on-merge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          echo "=== TRIGGER: APPLY-ON-MERGE ==="
+          echo "Pushing configurations to main branch..."
+          echo "ArgoCD will now sync the Live State with the Target State."

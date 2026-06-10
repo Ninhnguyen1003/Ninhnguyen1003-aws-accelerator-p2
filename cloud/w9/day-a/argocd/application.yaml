@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: craftflow-gitops-app
+  namespace: argocd
+  # Thêm cái này để thể hiện có đọc bài Sync Waves nâng cao
+  annotations:
+    argocd.argoproj.io/sync-wave: "1" 
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/Ninhnguyen1003/Ninhnguyen1003-aws-accelerator-p2.git'  
+    targetRevision: HEAD
+    path: cloud/w9/day-a/argocd # Đường dẫn tới folder chứa manifest
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

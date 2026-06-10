@@ -1,69 +1,64 @@
-#!/bin/bash
-set -e
+=
 
-echo "================ C CÀI ĐẶT DOCKER ENGINE TIÊU CHUẨN ]================"
-apt-get update -y
-apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+echo "================ [1] CÀI ĐẶT KUBECTL TIÊU CHUẨN ]================"
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+chmod +x ./kubectl
+mv ./kubectl /usr/local/bin/kubectl
 
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-apt-get update -y
-apt-get install -y docker-ce docker-ce-cli containerd.io
+echo "================ [2] CÀI ĐẶT MINIKUBE TIÊU CHUẨN ]================"
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+install minikube-linux-amd64 /usr/local/bin/minikube
 
-echo "================ TẠO FILE GIAO DIỆN BO GÓC CHUẨN MẪU ]================"
-mkdir -p /tmp/web
-cat <<EOF > /tmp/web/index.html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Done</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f7f3ed;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
-            background: white;
-            padding: 60px 80px;
-            border-radius: 16px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
-            text-align: center;
-            max-width: 900px;
-            width: 90%;
-        }
-        h1 {
-            color: #222222;
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 15px;
-        }
-        p {
-            color: #666666;
-            font-size: 16px;
-            margin: 0;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Hello Xbrain, tôi là Nguyễn Quách Khang Ninh - Đã hoàn thành Terraform 1-Click Lab</h1>
-        <p>Application is running inside Kubernetes on EC2 with minikube Docker driver.</p>
-    </div>
-</body>
-</html>
+echo "================ [3] KHỞI CHẠY MINIKUBE CLUSTER (DOCKER DRIVER) ]================"
+# Cho phép chạy minikube bằng quyền root với driver docker, mở cổng map vật lý 30080
+minikube start --driver=docker --ports=30080:30080 --force
+
+echo "================ [4] DEPLOY ỨNG DỤNG VÀO TRONG KUBERNETES ]================"
+# Tạo ConfigMap từ file HTML custom đã tạo ở thư mục tạm
+kubectl create configmap nginx-html-config --from-file=index.html=/tmp/web/index.html
+
+# Định nghĩa và deploy ứng dụng Nginx + Service NodePort chuẩn K8s
+cat <<EOF | kubectl apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-web
+  template:
+    metadata:
+      labels:
+        app: nginx-web
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.27
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: html-volume
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: html-volume
+        configmap:
+          name: nginx-html-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  type: NodePort
+  selector:
+    app: nginx-web
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 30080
 EOF
 
-echo "================ KÍCH HOẠT CONTAINER CONTAINER MAP THẲNG VÀO CỔNG 30080 ]================"
-# Chạy một container Nginx Alpine siêu nhẹ (chỉ 5MB), bốc file HTML bo góc vào gánh thay K8s trong tình huống khẩn cấp
-docker run -d \
-  --name nginx-k8s-bypass \
-  -p 30080:80 \
-  -v /tmp/web:/usr/share/nginx/html \
-  --restart always \
-  nginx:alpine
+echo "================ DỰ ÁN ĐÃ DEPLOY XONG VÀO RUỘT K8S THÀNH CÔNG! ]================"
