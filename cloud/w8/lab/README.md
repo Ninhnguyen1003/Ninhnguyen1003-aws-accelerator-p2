@@ -133,9 +133,11 @@ Mã nguồn được phân tách mạch lạc thành các file phẳng chuyên b
 
 ## 7. Kết quả nghiệm thu thực tế (Evidence)
 
-Khởi tạo và cấu hình thành công hệ thống tài nguyên (Terraform Init & Validate):
+* **Khởi tạo và cấu hình thành công hệ thống tài nguyên:** (Terraform Init & Validate)
+* **Trạng thái Target Group trên AWS Web Console báo xanh rực rỡ `[Healthy 100%]`:**
 
-Trạng thái Target Group trên AWS Web Console báo xanh rực rỡ [Healthy 100%]: D:\XBRAIN\aws-accelerator-p2\cloud\w8\lab\evidence\healthy.png
+  ![Target Group Healthy](evidence/healthy.png)
 
-Giao diện trang Web hiển thị thành công thông qua đường dẫn DNS của Load Balancer từ Internet công cộng: D:\XBRAIN\aws-accelerator-p2\cloud\w8\lab\evidence\web.png
+* **Giao diện trang Web hiển thị thành công thông qua đường dẫn DNS của Load Balancer từ Internet công cộng:**
 
+  ![Giao diện Web hiển thị thành công](evidence/web.png)
